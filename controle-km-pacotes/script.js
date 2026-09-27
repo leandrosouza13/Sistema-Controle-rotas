@@ -3,7 +3,7 @@ async function boot(){if(SUPABASE_URL.includes('COLE_')||SUPABASE_ANON_KEY.inclu
 async function sessionChanged(s){user=s?.user;show('auth',!user);show('logout',!!user);if(!user){show('setup',false);show('app',false);return} $('who').textContent=user.email||'Conta Google';let {data,error}=await sb.from('household_members').select('household_id,households(id,name)').eq('user_id',user.id).maybeSingle();if(error){show('setup',true);msg('setupMsg','Execute o SQL de configuração no Supabase. '+error.message);return}if(!data){show('setup',true);show('app',false);return}space=data.households;show('setup',false);show('app',true);$('spaceTitle').textContent=space.name;await load()}
 $('login').onclick=async()=>{let {error}=await sb.auth.signInWithPassword({email:$('email').value,password:$('password').value});msg('authMsg',error?.message)};
 $('signup').onclick=async()=>{let {error}=await sb.auth.signUp({email:$('email').value,password:$('password').value});msg('authMsg',error?.message||'Conta criada. Confirme o e-mail, se solicitado.')};
-$('google').onclick=async()=>{let {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href}});if(error)msg('authMsg',error.message)};
+$('google').onclick=async()=>{let redirectTo=location.origin+location.pathname;let {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo}});if(error)msg('authMsg',error.message)};
 $('logout').onclick=()=>sb.auth.signOut();
 $('createSpace').onclick=async()=>{let {error}=await sb.rpc('create_household',{p_name:$('spaceName').value.trim()});msg('setupMsg',error?.message||'Espaço criado.');if(!error)await sessionChanged({user})};
 $('joinSpace').onclick=async()=>{let button=$('joinSpace'),code=$('inviteInput').value.trim();
