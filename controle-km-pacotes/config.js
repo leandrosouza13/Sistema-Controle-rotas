@@ -1,2 +1,2 @@
-window.SUPABASE_URL="COLE_A_URL";
-window.SUPABASE_ANON_KEY="COLE_A_CHAVE_ANON_PUBLIC";
+window.SUPABASE_URL=sb_publishable_g8N8bhd8pylswSvoorLYpQ_r4FdaONT;
+window.SUPABASE_ANON_KEY=sb_secret_MglXXjABmOS3wNvk11rugQ_U8X2OseF;
