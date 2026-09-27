@@ -21,6 +21,9 @@ dialog::backdrop{background:#0008}
 dialog form{padding-bottom:env(safe-area-inset-bottom)}
 #metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:10px;font-weight:700}
 #metrics span{min-width:0;background:#f3f4f6;padding:14px;border-radius:6px;overflow-wrap:anywhere}
+#customPeriod{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:560px}
+#customPeriod label{min-width:0}
+#periodMsg{margin:4px 0 10px;color:#9b1c1c}
 
 @media(max-width:600px){
  header{padding-top:max(12px,env(safe-area-inset-top));gap:10px}
@@ -30,6 +33,7 @@ dialog form{padding-bottom:env(safe-area-inset-bottom)}
  .card{padding:14px;margin-bottom:10px}
  .card h2{font-size:20px;margin-top:4px}
  #auth button,#setup button,#app .card>button,#period{width:100%}
+ #customPeriod{grid-template-columns:1fr;gap:0}
  #metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
  #metrics span{padding:12px;font-size:14px}
  dialog{width:calc(100vw - 16px);max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);padding:14px}
