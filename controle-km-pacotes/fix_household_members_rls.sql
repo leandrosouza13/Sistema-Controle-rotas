@@ -16,6 +16,34 @@ $$;
 revoke all on function public.is_household_member(uuid) from public;
 grant execute on function public.is_household_member(uuid) to authenticated;
 
+create or replace function public.create_household_invite()
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  hid uuid;
+  invite_code text;
+begin
+  select household_id into hid
+  from public.household_members
+  where user_id = auth.uid();
+
+  if hid is null then
+    raise exception 'Sem espaço';
+  end if;
+
+  invite_code = upper(encode(extensions.gen_random_bytes(6), 'hex'));
+  insert into public.household_invites(household_id, code, created_by)
+  values (hid, invite_code, auth.uid());
+
+  return invite_code;
+end;
+$$;
+
+grant execute on function public.create_household_invite() to authenticated;
+
 drop policy if exists "household member read" on public.households;
 create policy "household member read" on public.households
   for select to authenticated

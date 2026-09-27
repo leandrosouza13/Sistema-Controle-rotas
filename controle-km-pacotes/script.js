@@ -6,7 +6,17 @@ $('signup').onclick=async()=>{let {error}=await sb.auth.signUp({email:$('email')
 $('google').onclick=async()=>{let {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href}});if(error)msg('authMsg',error.message)};
 $('logout').onclick=()=>sb.auth.signOut();
 $('createSpace').onclick=async()=>{let {error}=await sb.rpc('create_household',{p_name:$('spaceName').value.trim()});msg('setupMsg',error?.message||'Espaço criado.');if(!error)await sessionChanged({user})};
-$('joinSpace').onclick=async()=>{let {error}=await sb.rpc('join_household_by_code',{p_code:$('inviteInput').value.trim()});msg('setupMsg',error?.message||'Espaço vinculado.');if(!error)await sessionChanged({user})};
+$('joinSpace').onclick=async()=>{let button=$('joinSpace'),code=$('inviteInput').value.trim();
+ if(!code){msg('setupMsg','Informe o código de convite.');return}
+ button.disabled=true;button.textContent='Entrando...';msg('setupMsg','Validando código de convite...');
+ try{
+  const {error}=await sb.rpc('join_household_by_code',{p_code:code});
+  if(error){msg('setupMsg',error.message);return}
+  msg('setupMsg','Código aceito. Abrindo o espaço...');
+  await sessionChanged({user});
+ }catch(error){msg('setupMsg',error?.message||'Não foi possível validar o convite. Verifique sua conexão e tente novamente.')}
+ finally{button.disabled=false;button.textContent='Entrar com código'}
+};
 $('invite').onclick=async()=>{let {data,error}=await sb.rpc('create_household_invite');if(error)return alert(error.message);$('inviteCode').textContent='Código: '+data+' (válido por 7 dias; uso único)';navigator.clipboard?.writeText(data)};
 async function load(){let {data,error}=await sb.from('routes').select('*').eq('household_id',space.id).order('route_date',{ascending:false});if(error)return alert(error.message);routes=data.map(r=>({id:r.id,date:r.route_date,packages:r.packages,packageCost:+r.package_cost,earnings:+r.earnings,km:+r.total_km,onixKm:+r.onix_km,loganKm:+r.logan_km,oi:r.onix_km_initial,of:r.onix_km_final,li:r.logan_km_initial,lf:r.logan_km_final,notes:r.notes||''}));render()}
 function filtered(){let p=$('period').value,d=new Date(),t=today(),s=null,e=null;if(p==='today')s=e=t;if(p==='7'){let x=new Date();x.setDate(x.getDate()-6);s=x.toISOString().slice(0,10);e=t}if(p==='1'){s=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;e=s.slice(0,8)+'15'}if(p==='2'){s=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-16`;e=new Date(d.getFullYear(),d.getMonth()+1,0).toISOString().slice(0,10)}if(p==='month'){s=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;e=new Date(d.getFullYear(),d.getMonth()+1,0).toISOString().slice(0,10)}return routes.filter(r=>(!s||r.date>=s)&&(!e||r.date<=e))}
