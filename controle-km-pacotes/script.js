@@ -24,5 +24,18 @@ function render(){let d=filtered(),g=d.reduce((a,r)=>a+r.earnings,0),p=d.reduce(
 $('period').onchange=render;const modal=$('modal');$('add').onclick=()=>open();$('cancel').onclick=()=>modal.close();function open(r=null){$('routeForm').reset();$('rid').value=r?.id||'';$('date').value=r?.date||today();$('packages').value=r?.packages??'';$('rate').value=r?.packageCost??'';$('oi').value=r?.oi??'';$('of').value=r?.of??'';$('li').value=r?.li??'';$('lf').value=r?.lf??'';$('notes').value=r?.notes||'';preview();modal.showModal()}
 function preview(){let p=N($('packages').value),rate=N($('rate').value),k=km($('oi').value,$('of').value)+km($('li').value,$('lf').value);$('preview').textContent=`Ganho ${M(p*rate)} · KM total ${k} · R$/KM ${M(k?p*rate/k:0)}`}
 ['packages','rate','oi','of','li','lf'].forEach(id=>$(id).oninput=preview);
-$('routeForm').onsubmit=async e=>{e.preventDefault();let oi=N($('oi').value),of=N($('of').value),li=N($('li').value),lf=N($('lf').value),p=N($('packages').value),rate=N($('rate').value);if(of<oi||lf<li)return alert('KM final não pode ser menor que inicial.');let payload={household_id:space.id,route_date:$('date').value,onix_km_initial:oi,onix_km_final:of,onix_km:km(oi,of),logan_km_initial:li,logan_km_final:lf,logan_km:km(li,lf),total_km:km(oi,of)+km(li,lf),packages:p,package_cost:rate,earnings:p*rate,notes:$('notes').value,created_by:user.id};let id=$('rid').value,res=id?await sb.from('routes').update(payload).eq('id',id):await sb.from('routes').insert(payload);if(res.error)return alert(res.error.message);modal.close();await load()};
+$('routeForm').onsubmit=async e=>{
+ e.preventDefault();
+ let hasOnix=$('oi').value!==''||$('of').value!=='';
+ let hasLogan=$('li').value!==''||$('lf').value!=='';
+ if(hasOnix&&(!$('oi').value||!$('of').value))return alert('Preencha KM inicial e final do Onix, ou deixe ambos vazios.');
+ if(hasLogan&&(!$('li').value||!$('lf').value))return alert('Preencha KM inicial e final do Logan, ou deixe ambos vazios.');
+ let oi=hasOnix?N($('oi').value):null,of=hasOnix?N($('of').value):null,li=hasLogan?N($('li').value):null,lf=hasLogan?N($('lf').value):null,p=N($('packages').value),rate=N($('rate').value);
+ if((hasOnix&&of<oi)||(hasLogan&&lf<li))return alert('KM final não pode ser menor que inicial.');
+ let onixKm=hasOnix?km(oi,of):null,loganKm=hasLogan?km(li,lf):null;
+ let payload={household_id:space.id,route_date:$('date').value,onix_km_initial:oi,onix_km_final:of,onix_km:onixKm,logan_km_initial:li,logan_km_final:lf,logan_km:loganKm,total_km:(onixKm||0)+(loganKm||0),packages:p,package_cost:rate,earnings:p*rate,notes:$('notes').value,created_by:user.id};
+ let id=$('rid').value,res=id?await sb.from('routes').update(payload).eq('id',id):await sb.from('routes').insert(payload);
+ if(res.error)return alert(res.error.message);
+ modal.close();await load()
+};
 window.edit=id=>{let r=routes.find(x=>x.id===id);if(r)open(r)};window.del=async id=>{if(confirm('Excluir rota?')){let {error}=await sb.from('routes').delete().eq('id',id);if(error)alert(error.message);else load()}};boot();
